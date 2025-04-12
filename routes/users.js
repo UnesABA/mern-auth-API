@@ -42,7 +42,7 @@ router.delete("/:id", async(req, res) =>{
 
 //get a user
 router.get("/", async (req, res) => {
-  const userId = req.query.userId
+  const userId   = req.query.userId
   const username = req.query.username
   try {
     const user = userId
@@ -55,8 +55,28 @@ router.get("/", async (req, res) => {
   }
 })
 
-//follow user
-router.put("/:id/follow", async(req, res) =>{
+//get friends 
+router.get("/friends/:userId", async (req, res) =>{
+  try {
+    const user    = await User.findById(req.params.userId)
+    const friends = await Promise.all(
+      user.followings.map((friendId) =>{
+        return User.findById(friendId)
+      })
+    )
+    let friendList = []
+    friends.map((friend) =>{
+      const {_id, username, profilrPicture} = friend
+      friendList.push({_id, username, profilrPicture})
+    })
+    res.status(200).json(friendList)
+  } catch (error) {
+    res.status(500).json(error)
+  }
+})
+
+//follow a user
+router.put("/:id/follow", async (req, res) =>{
   if(req.body.userId !== req.params.id){
     try {
       const user        = await User.findById(req.params.id)
